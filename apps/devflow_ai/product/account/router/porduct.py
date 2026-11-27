@@ -6,67 +6,14 @@ from ninja import Router, Schema
 from ninja.security import django_auth  # JWT 등을 쓰면 해당 인증 클래스로 교체
 
 from apps.devflow_ai.product.models import Product
+from apps.devflow_ai.product.models.product import is_trainee, PointRedemption, UserPass, \
+    AttendancePoint, RedeemError
+from apps.devflow_ai.product.schema.schema import ProductOut, FeatureStatusOut, ErrorOut, \
+    PointBalanceOut, PointHistoryOut, RedeemIn, RedeemOut, RedemptionOut, UserPassOut
+
 router = Router(tags=["passes"], auth=django_auth)
 
 
-# ---------- Schemas ----------
-
-class ErrorOut(Schema):
-    detail: str
-
-
-class ProductOut(Schema):
-    id: int
-    name: str
-    price: int
-    period_months: int
-    plan_type: str
-    required_points: int
-    is_trainee_only: bool
-    redeemed: bool = False  # 이미 포인트로 교환했는지
-
-
-class UserPassOut(Schema):
-    feature: str
-    expires_at: datetime
-    is_active: bool
-
-
-class PointBalanceOut(Schema):
-    balance: int
-
-
-class PointHistoryOut(Schema):
-    id: int
-    points: int
-    reason: str
-    created_at: datetime
-
-
-class RedeemIn(Schema):
-    product_id: int
-
-
-class RedeemOut(Schema):
-    product_id: int
-    points_used: int
-    balance: int
-    passes: List[UserPassOut]
-
-
-class RedemptionOut(Schema):
-    id: int
-    product_id: int
-    points_used: int
-    created_at: datetime
-
-
-class FeatureStatusOut(Schema):
-    feature: str
-    active: bool
-
-
-# ---------- 상품 ----------
 
 @router.get("/products", response=List[ProductOut])
 def list_products(request, points_only: bool = False):
